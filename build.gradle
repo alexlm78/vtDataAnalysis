@@ -4,12 +4,12 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
-group = 'dev.kreaker'
+group = 'dev.kreaker.vtda'
 version = '0.0.1-SNAPSHOT'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
@@ -23,13 +23,41 @@ repositories {
 	mavenCentral()
 }
 
+dependencyManagement {
+	imports {
+		mavenBom 'org.testcontainers:testcontainers-bom:1.19.3'
+	}
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-	compileOnly 'org.projectlombok:lombok'
+	
+	// JSON processing
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
+	
+	// CSV processing
+	implementation 'com.opencsv:opencsv:5.9'
+	
+	// Command-line parsing
+	implementation 'info.picocli:picocli:4.7.5'
+	implementation 'info.picocli:picocli-spring-boot-starter:4.7.5'
+	
+	// Oracle JDBC driver
 	runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
+	
+	// Lombok for reducing boilerplate
+	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+	
+	// Testing dependencies
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.mockito:mockito-core'
+	testImplementation 'org.mockito:mockito-junit-jupiter'
+	testImplementation 'org.assertj:assertj-core'
+	testImplementation 'org.testcontainers:junit-jupiter'
+	testImplementation 'org.testcontainers:oracle-xe'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
