@@ -1,0 +1,22 @@
+database:
+  url: jdbc:oracle:thin:@localhost:1521:xe
+  username: testuser
+  password: testpass
+  schema: TESTSCHEMA
+  connection-timeout: 60
+  query-timeout: 600
+
+export:
+  format: JSON
+  output: test-output.json
+  include-comments: false
+  pretty-print: true
+
+filter:
+  include:
+    - USER_*
+    - CUSTOMER_*
+  exclude:
+    - TEMP_*
+  case-sensitive: true
+  regex: false
