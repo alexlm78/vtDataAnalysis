@@ -77,7 +77,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public boolean isVerboseMode() {
         if (verboseMode == null) {
             verboseMode = applicationArguments.containsOption("verbose") || 
-                         applicationArguments.containsOption("v");
+                         applicationArguments.containsOption("v") ||
+                         hasShortOption("v");
         }
         return verboseMode;
     }
@@ -86,7 +87,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public boolean isQuietMode() {
         if (quietMode == null) {
             quietMode = applicationArguments.containsOption("quiet") || 
-                       applicationArguments.containsOption("q");
+                       applicationArguments.containsOption("q") ||
+                       hasShortOption("q");
         }
         return quietMode;
     }
@@ -95,7 +97,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public boolean isHelpRequested() {
         if (helpRequested == null) {
             helpRequested = applicationArguments.containsOption("help") || 
-                           applicationArguments.containsOption("h");
+                           applicationArguments.containsOption("h") ||
+                           hasShortOption("h");
         }
         return helpRequested;
     }
@@ -532,5 +535,28 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private String getStringArgument(String option) {
         List<String> values = applicationArguments.getOptionValues(option);
         return (values != null && !values.isEmpty()) ? values.get(0) : null;
+    }
+    
+    /**
+     * Helper method to check for short-form options (single character with single dash).
+     * Spring Boot's ApplicationArguments doesn't handle single-dash options by default,
+     * so we need to check the raw arguments.
+     */
+    private boolean hasShortOption(String shortOption) {
+        String[] sourceArgs = applicationArguments.getSourceArgs();
+        String shortForm = "-" + shortOption;
+        
+        for (String arg : sourceArgs) {
+            if (shortForm.equals(arg)) {
+                return true;
+            }
+            // Also check for combined short options like -vh
+            if (arg.startsWith("-") && !arg.startsWith("--") && arg.length() > 2) {
+                if (arg.substring(1).contains(shortOption)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

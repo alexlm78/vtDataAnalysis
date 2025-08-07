@@ -1,5 +1,9 @@
 package dev.kreaker.vtda;
 
+import dev.kreaker.vtda.exception.ConfigurationException;
+import dev.kreaker.vtda.exception.ErrorCode;
+import dev.kreaker.vtda.service.ConfigurationService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -13,21 +17,65 @@ import java.util.List;
 import java.util.Map;
 
 @SpringBootApplication
+@Slf4j
 public class VtDataAnalysisApplication implements CommandLineRunner {
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
+	
+	@Autowired
+	private ConfigurationService configurationService;
 
 	public static void main(String[] args) {
 		SpringApplication.run(VtDataAnalysisApplication.class, args);
 	}
 
 	@Override
-	public void run (String... args) {
+	public void run(String... args) {
 		try {
-			getTablesSchema("REPORTUSER");
-		}catch (Exception ex){
-			ex.printStackTrace();
+			// Check if help was requested
+			if (configurationService.isHelpRequested()) {
+				System.out.println(configurationService.getHelpText());
+				System.exit(ErrorCode.SUCCESS.getExitCode());
+				return;
+			}
+			
+			// Validate configuration
+			try {
+				configurationService.validateConfiguration();
+				if (configurationService.isVerboseMode()) {
+					log.info("Configuration validation completed successfully");
+				}
+			} catch (ConfigurationException e) {
+				System.err.println("Configuration Error: " + e.getMessage());
+				System.err.println("\nUse --help or -h for usage information.");
+				System.exit(ErrorCode.CONFIG_ERROR.getExitCode());
+				return;
+			}
+			
+			// For now, use the old implementation until other services are implemented
+			// This will be replaced when metadata extraction service is implemented
+			String schema = configurationService.getDatabaseConfig().getSchema();
+			if (configurationService.isVerboseMode()) {
+				log.info("Extracting metadata for schema: {}", schema);
+			}
+			
+			getTablesSchema(schema);
+			
+		} catch (ConfigurationException e) {
+			if (!configurationService.isQuietMode()) {
+				System.err.println("Configuration Error: " + e.getMessage());
+				System.err.println("\nUse --help or -h for usage information.");
+			}
+			System.exit(ErrorCode.CONFIG_ERROR.getExitCode());
+		} catch (Exception e) {
+			if (!configurationService.isQuietMode()) {
+				System.err.println("Unexpected error: " + e.getMessage());
+				if (configurationService.isVerboseMode()) {
+					e.printStackTrace();
+				}
+			}
+			System.exit(ErrorCode.UNEXPECTED_ERROR.getExitCode());
 		}
 	}
 
