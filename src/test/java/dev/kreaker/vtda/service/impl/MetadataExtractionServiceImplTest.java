@@ -195,7 +195,8 @@ class MetadataExtractionServiceImplTest {
         ResultSet schemasRs = mock(ResultSet.class);
         
         when(dataSource.getConnection())
-                .thenReturn(connection) // For connection validation
+                .thenReturn(connection) // For connection validation in extractTableMetadata
+                .thenReturn(connection) // For connection validation in validateSchema
                 .thenReturn(validationConn) // For schema validation
                 .thenReturn(connection) // For connection validation in getAvailableSchemas
                 .thenReturn(schemasConn); // For getting available schemas
